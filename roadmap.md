@@ -6,7 +6,6 @@
         b. Monitor liquidity pools created on a DEX (each pool ID is a pair)
         
 
-        
     * Add token as soon as they are added to a liquidity pool and have at least one transaction .
     
 
