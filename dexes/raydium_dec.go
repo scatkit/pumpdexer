@@ -3,7 +3,7 @@ import(
   "fmt"
   "encoding/binary"
   "bytes"
-  "go_projects/solana"
+  "github.com/scatkit/pumpdexer/solana"
 )
 
 type RaydiumLiquidityV4Structure struct{

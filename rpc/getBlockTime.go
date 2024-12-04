@@ -1,7 +1,7 @@
 package rpc
 import (
   "context"
-  "go_projects/solana"
+  "github.com/scatkit/pumpdexer/solana"
 )
 
 // block is a Slot

@@ -4,7 +4,7 @@ import(
   "time"
   "net/http"
   "net"
-  jsonrpc "go_projects/rpc/jsonrpc"
+  jsonrpc "github.com/scatkit/pumpdexer/rpc/jsonrpc"
 )
 
 type JSONRPCClient interface{

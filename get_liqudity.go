@@ -3,9 +3,9 @@ import(
   //"time"
   "context" 
   "fmt"
-  rpc "go_projects/rpc"
-  "go_projects/solana"
-  "go_projects/dexes"
+  rpc "github.com/scatkit/pumpdexer/rpc"
+  "github.com/scatkit/pumpdexer/solana"
+  "github.com/scatkit/pumpdexer/dexes"
   "github.com/davecgh/go-spew/spew"
   "math/big"
 )
@@ -24,11 +24,11 @@ func main() {
   fmt.Printf("Address of pair: %v\n",pub_key.String())
   fmt.Printf("Address of base(meme) token: %v\n",poolInfo.BaseVault.String())
   fmt.Printf("Address of quote(sol) token: %v\n",poolInfo.QuoteVault.String())
-  base_token, err := client.GetTokenAccountBalance(context.Background(), poolInfo.BaseVault)
+  base_token, err := client.GetTokenAccountBalance(context.Background(), poolInfo.BaseVault, rpc.CommitmentFinalized)
   if err != nil{
     fmt.Errorf("Error: %v\n", err)
   }
-  quote_token, err := client.GetBalance(context.Background(), poolInfo.QuoteVault)
+  quote_token, err := client.GetBalance(context.Background(), poolInfo.QuoteVault, rpc.CommitmentFinalized)
   if err != nil{
     fmt.Errorf("Error: %v\n", err)
   }

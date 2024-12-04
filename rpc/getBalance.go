@@ -1,7 +1,7 @@
 package rpc
 import(
   "context"
-  "go_projects/solana"
+  "github.com/scatkit/pumpdexer/solana"
 )
 
 func (cl *Client) GetBalance(ctx context.Context, account solana.PublicKey, commitment CommitmentType) (out *GetBalanceResult, err error){

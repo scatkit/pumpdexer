@@ -6,7 +6,7 @@ import (
   "testing"
   stdjson "encoding/json"
   "math/big"
-  "go_projects/solana"
+  "github.com/scatkit/pumpdexer/solana"
   //"github.com/davecgh/go-spew/spew"
   "github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

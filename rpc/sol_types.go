@@ -2,7 +2,7 @@ package rpc
 import (
   "fmt"
   stdjson "encoding/json"
-  "go_projects/solana"  
+  "github.com/scatkit/pumpdexer/solana"  
   "math/big"
 )
 

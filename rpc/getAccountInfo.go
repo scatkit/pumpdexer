@@ -3,7 +3,7 @@ import(
   "fmt"
   "errors"
   "context"
-  "go_projects/solana"
+  "github.com/scatkit/pumpdexer/solana"
 )
 
 func (cl *Client) GetAccountInfo(ctx context.Context, account solana.PublicKey) (output *AccountInfoResult, err error){
