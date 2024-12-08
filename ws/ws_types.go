@@ -6,7 +6,7 @@ import (
   "net/http"
   "time"
 )
- 
+
 type request struct{
   Version string      `json:"jsonrpc"` 
   Method  string      `json:"method"`
@@ -15,15 +15,23 @@ type request struct{
 }
 
 type response struct{
-  Version srting  `json:"jsonrpc"`
+  Version string  `json:"jsonrpc"`
   Params  *params `json:"params"`
   Error   *stdjson.RawMessage `json:"error"`
 }
 
-type Params struct{
-  Result        stdjson.RawMessage `json:"result"`
+type params struct{
+  Result        *stdjson.RawMessage `json:"result"`
   Subscription  int                `json:"subscription"`
 }
+ 
+type Options struct{
+  HttpHeader http.Header
+  HandshakeTimeout time.Duration
+  ShortID bool // some RPC do not support int63/uint64 id, so need to enable it to rand a int31/uint32 id
+}
+
+var DefaultHandshakeTimeout = 45 * time.Second
  
 func newRequest(params []interface{}, method string, conf map[string]interface{}, shortID bool) *request{
   if params != nil && conf != nil{
@@ -33,13 +41,13 @@ func newRequest(params []interface{}, method string, conf map[string]interface{}
     if !shortID{
       ID = uint64(rand.Int63())
     } else{
-      ID = uint(rand.Int31())
+      ID = uint64(rand.Int31())
     }
     return &request{
       Version: "2.0",
       Method:  method,
       Params:  params,
-      ID:      shortID,
+      ID:      ID,
     } 
 }
 
@@ -50,3 +58,4 @@ func (r *request) encode() ([]byte, error){
   }
   return data, nil
 }
+

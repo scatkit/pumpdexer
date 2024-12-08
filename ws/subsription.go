@@ -1,8 +1,7 @@
 package ws
-import "context"
 
 type Subscription struct{
-  req *request
+  req *request 
   subID uint64
   stream chan result // channel that accepts the result (interface)
   err    chan error
@@ -11,6 +10,8 @@ type Subscription struct{
   unsubscribeMethod string
   decoderFunc  decoderFunc
 }
+
+type decoderFunc func([]byte) (interface{}, error)
 
 func newSubscription(req *request, closeFunc func(err error), unsubMethod string, decoderFunc decoderFunc,
 ) *Subscription{
@@ -26,14 +27,13 @@ func newSubscription(req *request, closeFunc func(err error), unsubMethod string
   }
 }
 
-type decoderFunc([]byte) (interface{}, error)
 
 func (s *Subscription) Unsubscribe(){
   s.unsubscribe(nil)
 }
 
 func (s *Subscription) unsubscribe(err error){
-  s.closeFunc(err)
+  s.closeFunc(err) 
   s.closed = true 
   close(s.stream)
   close(s.err)
