@@ -49,4 +49,10 @@ func main() {
   fmt.Printf("Liqudity: %f\n", new(big.Float).Mul(sol_price, totalSol))
   
   
+ // token_supply, err := client.GetTokenSupply(context.Background(), poolInfo.BaseMint, rpc.CommitmentFinalized) 
+ // if err != nil{
+ //   panic(err)
+ // }
+ // token_suply = NewFloat(*token_supply.Value.UiAmount)
+  
  }
