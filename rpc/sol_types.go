@@ -74,11 +74,20 @@ func (dt *DataBytesOrJSON) GetBinary() []byte{
 
 type TransactionSignature struct{
   Err interface{} `json:"err"` // err if failed else nil if succeeded
-  Memo *string    `json:"signature"` 
-  Signature *solana.Signature `json:"signature"`
+  Memo *string    `json:"memo"` 
+  Signature     solana.Signature `json:"signature"`
   Slot uint64  `json:"slot,omitempty"`
   BlockTime *solana.UnixTimeSeconds `json:"blockTime,omitempty"`
+  ConfirmationStatus ConfirmationStatusType `json:"confirmationStatus,omitempty"`
 }
+
+type ConfirmationStatusType string
+
+const (
+	ConfirmationStatusProcessed ConfirmationStatusType = "processed"
+	ConfirmationStatusConfirmed ConfirmationStatusType = "confirmed"
+	ConfirmationStatusFinalized ConfirmationStatusType = "finalized"
+)
  
 type GetBalanceResult struct {
 	RPCContext

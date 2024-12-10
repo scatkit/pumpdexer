@@ -69,7 +69,41 @@ func (t *Data) UnmarshalJSON(data []byte) (err error){
 }
 
 type Signature [64]byte
+var zeroSignature = Signature{}
 
+func (sig Signature) IsZero() bool{
+  return sig == zeroSignature
+}
+
+func (sig Signature) Equals(pb Signature) bool{
+  return sig == pb
+}
+
+func (s Signature) String() string{
+  return base58.Encode(s[:])
+}
+
+func (p *Signature) UnmarshalJSON(data []byte) (err error) {
+	var s string
+	err = json.Unmarshal(data, &s)
+	if err != nil {
+		return
+	}
+
+	dat, err := base58.Decode(s)
+	if err != nil {
+		return err
+	}
+
+	if len(dat) != SignatureLength {
+		return fmt.Errorf("invalid length for Signature, expected 64, got %d", len(dat))
+	}
+
+	target := Signature{}
+	copy(target[:], dat)
+	*p = target
+	return
+}
 
 type EncodingType string
 
