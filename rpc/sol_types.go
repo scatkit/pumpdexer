@@ -74,10 +74,10 @@ func (dt *DataBytesOrJSON) GetBinary() []byte{
 
 type TransactionSignature struct{
   Err interface{} `json:"err"` // err if failed else nil if succeeded
-  Memo *string    `json:"memo"` 
+  Memo *string    `json:"memo"` // meta data to a transaction
   Signature     solana.Signature `json:"signature"`
-  Slot uint64  `json:"slot,omitempty"`
-  BlockTime *solana.UnixTimeSeconds `json:"blockTime,omitempty"`
+  Slot uint64  `json:"slot,omitempty"` // the slot number where the transaction was confirmed
+  BlockTime *solana.UnixTimeSeconds `json:"blockTime,omitempty"` // eastimated time when transactio was processed
   ConfirmationStatus ConfirmationStatusType `json:"confirmationStatus,omitempty"`
 }
 
@@ -116,3 +116,13 @@ type DataSlice struct{
   Offset *uint64 `json:"offset,omitempty"`
   Length *uint64 `json:"length,omitempty"`
 }
+
+type TransactionOpts struct{
+  Encoding solana.EncodingType        `json:"encoding,omitemprt"`
+  SkipPreflight bool                  `json:"skipPreflight,omitempty"`
+  PreflightCommitment CommitmentType `json:"preflightCommitment", omitempty"`
+  MaxRetries *uint                    `json:"maxRetries"`
+  MinContextSlot *uint64              `json:"minContextSlot"`
+}
+
+

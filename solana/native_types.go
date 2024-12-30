@@ -1,6 +1,5 @@
 package solana
 import(
-  "encoding/json"
   "fmt"
   "github.com/mr-tron/base58"
   "encoding/base64"
@@ -69,6 +68,7 @@ func (t *Data) UnmarshalJSON(data []byte) (err error){
 }
 
 type Signature [64]byte
+
 var zeroSignature = Signature{}
 
 func (sig Signature) IsZero() bool{
@@ -103,6 +103,73 @@ func (p *Signature) UnmarshalJSON(data []byte) (err error) {
 	copy(target[:], dat)
 	*p = target
 	return
+}
+
+type Base58 []byte
+
+type Hash PublicKey
+
+// Decodes a base-58 string into Hash
+func MustHashFromBase58(in string) Hash {
+	return Hash(MustPubkeyFromBase58(in))
+}
+
+func HashFromBase58(in string) (Hash, error){
+  tmp, err := PublicKeyFromBase58(in)
+  if err != nil{
+    return Hash{}, err
+  }
+  return Hash(tmp), nil
+}
+
+func HashFromBytes(in []byte) Hash{
+  return Hash(PublicKeyFromBytes(in))
+}
+
+func (ha Hash) MarshalText() ([]byte, error) {
+	s := base58.Encode(ha[:])
+	return []byte(s), nil
+}
+
+func (ha *Hash) UnmarshalText(data []byte) (err error){
+  tmp, err := HashFromBase58(string(data))
+  if err != nil{
+    return fmt.Errorf("invalid hash %q: %w",string(data), err)
+  }
+  *ha = tmp
+  return
+}
+
+func (ha Hash) String() string {
+	return base58.Encode(ha[:])
+}
+
+func (ha Hash) MarshalJSON() ([]byte, error) {
+	return json.Marshal(base58.Encode(ha[:]))
+}
+
+func (ha *Hash) UnmarshalJSON(data []byte) (err error) {
+	var s string
+	if err := json.Unmarshal(data, &s); err != nil {
+		return err
+	}
+
+	tmp, err := HashFromBase58(s)
+	if err != nil {
+		return fmt.Errorf("invalid hash %q: %w", s, err)
+	}
+	*ha = tmp
+	return
+}
+
+func (ha Hash) Equals(pb Hash) bool {
+	return ha == pb
+}
+
+var zeroHash = Hash{}
+
+func (ha Hash) IsZero() bool {
+	return ha == zeroHash
 }
 
 type EncodingType string

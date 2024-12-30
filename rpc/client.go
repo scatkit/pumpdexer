@@ -19,7 +19,25 @@ type Client struct{
 
 var (
   defaultTimeout =  time.Minute * 5
-)
+) 
+
+func New(rpcEndpoint string) *Client{
+  opts := &jsonrpc.RPCClientOpts{
+    HTTPClient: newHTTP(),
+    //  CustomHeaders: omitted
+  }
+  rpc_client := jsonrpc.NewClientWithOpts(rpcEndpoint, opts) // receives a pointer to an jsonrpc.rpcClient
+  return &Client{rpcClient: rpc_client,} // creates a new Solana rpc client with the provided rpc client
+}
+
+func NewWithHeaders(rpcEndpoint string, headers map[string]string) *Client{
+  opts := &jsonrpc.RPCClientOpts{
+    HTTPClient: newHTTP(),
+    CustomHeaders: headers,
+  }
+  rpc_client := jsonrpc.NewClientWithOpts(rpcEndpoint, opts)
+  return &Client{rpcClient: rpc_client,}
+}
 
 func (c *Client) Call(ctx context.Context, method string, params ...interface{}) (*jsonrpc.RPCResponse, error){
   return c.rpcClient.Call(ctx, method, params)
@@ -50,12 +68,4 @@ func newHTTPTransport() *http.Transport{
   }
 }
 
-func New(rpcEndpoint string) *Client{
-  opts := &jsonrpc.RPCClientOpts{
-    HTTPClient: newHTTP(),
-//  CustomHeaders: omitted
-  }
-  rpc_client := jsonrpc.NewClientWithOpts(rpcEndpoint, opts) // receives a pointer to an jsonrpc.rpcClient
-  return &Client{rpcClient: rpc_client,} // creates a new Solana rpc client with the provided rpc client
-}
 
