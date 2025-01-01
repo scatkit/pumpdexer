@@ -4,6 +4,7 @@ import(
   "time"
   "net/http"
   "net"
+  "io"
   jsonrpc "github.com/scatkit/pumpdexer/rpc/jsonrpc"
 )
 
@@ -20,6 +21,16 @@ type Client struct{
 var (
   defaultTimeout =  time.Minute * 5
 ) 
+
+func (cl *Client) Close() error {
+	if cl.rpcClient == nil {
+		return nil
+	}
+	if c, ok := cl.rpcClient.(io.Closer); ok {
+		return c.Close()
+	}
+	return nil
+}
 
 func New(rpcEndpoint string) *Client{
   opts := &jsonrpc.RPCClientOpts{

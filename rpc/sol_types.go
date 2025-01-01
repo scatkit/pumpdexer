@@ -120,7 +120,7 @@ type DataSlice struct{
 type TransactionOpts struct{
   Encoding solana.EncodingType        `json:"encoding,omitemprt"`
   SkipPreflight bool                  `json:"skipPreflight,omitempty"`
-  PreflightCommitment CommitmentType `json:"preflightCommitment", omitempty"`
+  PreflightCommitment CommitmentType  `json:"preflightCommitment,omitempty"`
   MaxRetries *uint                    `json:"maxRetries"`
   MinContextSlot *uint64              `json:"minContextSlot"`
 }

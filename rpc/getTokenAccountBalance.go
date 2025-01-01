@@ -5,7 +5,7 @@ import(
 )
 
 func (cl *Client) GetTokenAccountBalance(ctx context.Context, account solana.PublicKey, commitment CommitmentType,
-) (out *tokenAccountBalanceResult, err error){
+) (out *GetTokenAccountBalanceResult, err error){
   params := []interface{}{account}
   if commitment != ""{
     params = append(params, map[string]interface{}{"commitment":commitment})
@@ -14,7 +14,7 @@ func (cl *Client) GetTokenAccountBalance(ctx context.Context, account solana.Pub
   return 
 }
 
-type tokenAccountBalanceResult struct{
+type GetTokenAccountBalanceResult struct{
   RPCContext
   Value *UiTokenAmount `json:"value"`
 }
