@@ -1,26 +1,28 @@
 package rpc
-import(
-  "context"
-  "time"
-  "net/http"
-  "net"
-  "io"
-  jsonrpc "github.com/scatkit/pumpdexer/rpc/jsonrpc"
+
+import (
+	"context"
+	"io"
+	"net"
+	"net/http"
+	"time"
+
+	jsonrpc "github.com/scatkit/pumpdexer/rpc/jsonrpc"
 )
 
-type JSONRPCClient interface{
-  Call(ctx context.Context, method string, params ...interface{}) (*jsonrpc.RPCResponse, error)
-  CallForInfo(ctx context.Context, out interface{}, method string, params []interface{}) error
+type JSONRPCClient interface {
+	Call(ctx context.Context, method string, params ...interface{}) (*jsonrpc.RPCResponse, error)
+	CallForInfo(ctx context.Context, out interface{}, method string, params []interface{}) error
 }
 
-type Client struct{
-  rpcURL    string
-  rpcClient JSONRPCClient // -> abstraction over rpcClient from jsonrpc
+type Client struct {
+	rpcURL    string
+	rpcClient JSONRPCClient // -> abstraction over rpcClient from jsonrpc
 }
 
 var (
-  defaultTimeout =  time.Minute * 5
-) 
+	defaultTimeout = time.Minute * 5
+)
 
 func (cl *Client) Close() error {
 	if cl.rpcClient == nil {
@@ -32,51 +34,53 @@ func (cl *Client) Close() error {
 	return nil
 }
 
-func New(rpcEndpoint string) *Client{
-  opts := &jsonrpc.RPCClientOpts{
-    HTTPClient: newHTTP(),
-    //  CustomHeaders: omitted
-  }
-  rpc_client := jsonrpc.NewClientWithOpts(rpcEndpoint, opts) // receives a pointer to an jsonrpc.rpcClient
-  return &Client{rpcClient: rpc_client,} // creates a new Solana rpc client with the provided rpc client
+func New(rpcEndpoint string) *Client {
+	opts := &jsonrpc.RPCClientOpts{
+		HTTPClient: newHTTP(),
+		//  CustomHeaders: omitted
+	}
+	rpc_client := jsonrpc.NewClientWithOpts(rpcEndpoint, opts) // receives a pointer to an jsonrpc.rpcClient
+	return &Client{rpcClient: rpc_client}                      // creates a new Solana rpc client with the provided rpc client
 }
 
-func NewWithHeaders(rpcEndpoint string, headers map[string]string) *Client{
-  opts := &jsonrpc.RPCClientOpts{
-    HTTPClient: newHTTP(),
-    CustomHeaders: headers,
-  }
-  rpc_client := jsonrpc.NewClientWithOpts(rpcEndpoint, opts)
-  return &Client{rpcClient: rpc_client,}
+func NewWithHeaders(rpcEndpoint string, headers map[string]string) *Client {
+	opts := &jsonrpc.RPCClientOpts{
+		HTTPClient:    newHTTP(),
+		CustomHeaders: headers,
+	}
+	rpc_client := jsonrpc.NewClientWithOpts(rpcEndpoint, opts)
+	return &Client{rpcClient: rpc_client}
 }
 
-func (c *Client) Call(ctx context.Context, method string, params ...interface{}) (*jsonrpc.RPCResponse, error){
-  return c.rpcClient.Call(ctx, method, params)
+func (c *Client) Call(ctx context.Context, method string, params ...interface{}) (*jsonrpc.RPCResponse, error) {
+	return c.rpcClient.Call(ctx, method, params)
 }
 
-// returns a new http client from the provided config 
-func newHTTP() *http.Client{
-  tr := newHTTPTransport()
-  return &http.Client{
-    Timeout: defaultTimeout,
-    Transport: tr,
-  }
+func (cl *Client) RPCCallForInfo(ctx context.Context, out interface{}, method string, params []interface{}) error {
+	return cl.rpcClient.CallForInfo(ctx, out, method, params)
 }
 
-func newHTTPTransport() *http.Transport{
-  return &http.Transport{
-    IdleConnTimeout: defaultTimeout,
-    MaxConnsPerHost: 9,
-    MaxIdleConnsPerHost: 9,
-    Proxy: http.ProxyFromEnvironment,
-    DialContext: (&net.Dialer{
-      Timeout: time.Minute * 5 ,
-      KeepAlive: time.Second * 180,
-      DualStack: true, //enables ipv4, ipv6
-    }).DialContext, 
-    ForceAttemptHTTP2: true,
-    TLSHandshakeTimeout: time.Second * 10,
-  }
+// returns a new http client from the provided config
+func newHTTP() *http.Client {
+	tr := newHTTPTransport()
+	return &http.Client{
+		Timeout:   defaultTimeout,
+		Transport: tr,
+	}
 }
 
-
+func newHTTPTransport() *http.Transport {
+	return &http.Transport{
+		IdleConnTimeout:     defaultTimeout,
+		MaxConnsPerHost:     9,
+		MaxIdleConnsPerHost: 9,
+		Proxy:               http.ProxyFromEnvironment,
+		DialContext: (&net.Dialer{
+			Timeout:   time.Minute * 5,
+			KeepAlive: time.Second * 180,
+			DualStack: true, //enables ipv4, ipv6
+		}).DialContext,
+		ForceAttemptHTTP2:   true,
+		TLSHandshakeTimeout: time.Second * 10,
+	}
+}

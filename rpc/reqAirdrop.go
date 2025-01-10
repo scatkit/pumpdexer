@@ -4,10 +4,8 @@ import(
   "github.com/scatkit/pumpdexer/solana"
 )
 
-type result string
-
 func (cl *Client) ReqAirdrop(ctx context.Context, walletAddress solana.PublicKey, lamports uint64, commitment CommitmentType,
-) (out result, err error){
+) (out string, err error){
   params := []interface{}{
     walletAddress, 
     lamports,    

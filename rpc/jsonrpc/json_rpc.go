@@ -116,7 +116,7 @@ func NewClientWithOpts(endpoint string, opts *RPCClientOpts) *rpcClient {
 }
 
 func (client *rpcClient) newRequest(ctx context.Context, reqBody interface{}) (*http.Request, error) {
-	// reqBytes -> slice of bytes reprenesting reqBody struct in JSON format o
+	// reqBytes -> slice of bytes reprenesting reqBody struct in JSON format
 	reqBytes, err := json.Marshal(reqBody)
 	if err != nil {
 		return nil, err
@@ -137,8 +137,7 @@ func (client *rpcClient) newRequest(ctx context.Context, reqBody interface{}) (*
 	return request, nil
 }
 
-func (client *rpcClient) makeCallWithCallbackOnHTTPResponse(ctx context.Context,
-	RPCRequest *RPCRequest,
+func (client *rpcClient) makeCallWithCallbackOnHTTPResponse(ctx context.Context, RPCRequest *RPCRequest,
 	callback func(*http.Request, *http.Response) error) error {
 	if RPCRequest != nil && RPCRequest.Id == nil {
 		RPCRequest.Id = newID()

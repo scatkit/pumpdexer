@@ -6,7 +6,7 @@ type Wallet struct{
 }
 
 func NewWallet() *Wallet {
-	privateKey, err := NewRandomPrivateKey()
+	privateKey, err := NewPrivateKey()
 	if err != nil {
 		panic(fmt.Sprintf("failed to generate private key: %s", err))
 	}

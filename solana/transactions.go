@@ -7,24 +7,24 @@ import (
 
 	bin "github.com/gagliardetto/binary"
 	"go.uber.org/zap"
-  //"github.com/davecgh/go-spew/spew"
+	//"github.com/davecgh/go-spew/spew"
 )
 
 type Transaction struct {
 	/* A list of base-58 encoded signatures applied to the transaction.
 	   The signature at index `I` corresponds to the public key at index `I */
-	Signatures []Signature `json:"signatures"`
+	Signatures []Signature `json:"signatures"` // (64 bytes each)
 	// Content of the message
-	Message Message `json:"message"`
+	Message Message `json:"message"` // (32 bytes each)
 }
 
 func (tx *Transaction) UnmarshalBase64(b64 string) error { // <- accepts base64 string
-  fmt.Println("ub64")
-  b, err := base64.StdEncoding.DecodeString(b64)
-  if err != nil {
-    return err
-  }
-  return tx.UnmarshalWithDecoder(bin.NewBinDecoder(b))
+	fmt.Println("ub64")
+	b, err := base64.StdEncoding.DecodeString(b64)
+	if err != nil {
+		return err
+	}
+	return tx.UnmarshalWithDecoder(bin.NewBinDecoder(b))
 }
 
 func (tx *Transaction) MarshalBinary() ([]byte, error) {
@@ -55,12 +55,12 @@ func (tx Transaction) MarshalWithEncoder(encoder *bin.Encoder) error {
 
 // Accepts a decoder built from base 64 encoded transaction string
 func TransactionFromDecoder(decoder *bin.Decoder) (*Transaction, error) {
-  var output *Transaction
-  err := decoder.Decode(&output)
-  if err != nil {
-    return nil, err
-  }
-  return output, nil
+	var output *Transaction
+	err := decoder.Decode(&output)
+	if err != nil {
+		return nil, err
+	}
+	return output, nil
 }
 
 func (tx *Transaction) UnmarshalWithDecoder(decoder *bin.Decoder) (err error) {
@@ -94,7 +94,6 @@ func (tx *Transaction) UnmarshalWithDecoder(decoder *bin.Decoder) (err error) {
 	return nil
 }
 
-
 type CompiledInstruction struct {
 	// Index into the message.accountKeys array indicating the (program account) that executes this instruction.
 	// NOTE: it is actually a uint8, but using a uint16 because uint8 is treated as a byte everywhere, and that can be an issue.
@@ -105,7 +104,6 @@ type CompiledInstruction struct {
 	// The program input data encoded in base58 string.
 	Data Base58 `json:"data"`
 }
-
 
 type Instruction interface {
 	ProgramID() PublicKey     // <-- the programID the instruction acts on
@@ -159,7 +157,9 @@ func NewTransaction(instructions []Instruction, recentBlockHash Hash, opts ...Tr
 		found := false
 		for _, acc := range instructions[0].Accounts() {
 			if acc.IsSigner {
-        if DebugNewTransaction{zlog.Info("Found a fee payer", zap.Stringer("account_pub_key", acc.PublicKey))}
+				if DebugNewTransaction {
+					zlog.Info("Found a fee payer", zap.Stringer("account_pub_key", acc.PublicKey))
+				}
 				feePayer = acc.PublicKey
 				found = true
 				break
@@ -169,7 +169,6 @@ func NewTransaction(instructions []Instruction, recentBlockHash Hash, opts ...Tr
 			return nil, fmt.Errorf("cannot determine a fee payer. You can either pass the fee payer via the 'TransactionWithInstructions' option parameter or it falls back to the first instruction's first signer")
 		}
 	}
-  
 
 	addressLookupKeysMap := make(map[PublicKey]addressTablePubkeyWithIndex) // all accounts from tables as map
 	for addressTablePubKey, addressTable := range options.addressTables {   // map[addressTablePubKey] = PublicKeySlice
@@ -195,10 +194,10 @@ func NewTransaction(instructions []Instruction, recentBlockHash Hash, opts ...Tr
 		programIDs.UniqueAppend(instruction.ProgramID())
 	}
 
-  if DebugNewTransaction{
-    zlog.Info("instruction accounts:", zap.Int("num_accounts", len(accounts)))
-    zlog.Info("instruction programs:", zap.Int("num_programdIDs", len(programIDs)))
-  }
+	if DebugNewTransaction {
+		zlog.Info("instruction accounts:", zap.Int("num_accounts", len(accounts)))
+		zlog.Info("instruction programs:", zap.Int("num_programdIDs", len(programIDs)))
+	}
 	programIDsMap := make(map[PublicKey]struct{}, len(programIDs)) // for IsInvoke check
 
 	// Add programID to account list
@@ -216,7 +215,7 @@ func NewTransaction(instructions []Instruction, recentBlockHash Hash, opts ...Tr
 	sort.SliceStable(accounts, func(i, j int) bool {
 		return accounts[i].less(accounts[j])
 	})
-  
+
 	uniqAccountsMap := map[PublicKey]uint64{} // map[PubKey]index
 	uniqAccounts := []*AccountMeta{}
 	for _, acc := range accounts {
@@ -281,10 +280,10 @@ func NewTransaction(instructions []Instruction, recentBlockHash Hash, opts ...Tr
 	})
 
 	for idx, acc := range allKeys {
-    if DebugNewTransaction{
-      zlog.Debug("transaction account", zap.Int("account_index", idx), zap.Stringer("account_pub_key", acc.PublicKey))
-    }
-    
+		if DebugNewTransaction {
+			zlog.Debug("transaction account", zap.Int("account_index", idx), zap.Stringer("account_pub_key", acc.PublicKey))
+		}
+
 		addressLookupKeyEntry, isPresentInTables := addressLookupKeysMap[acc.PublicKey] // comma-ok syntax* | Returns (addressTablePubkey + index)
 		_, IsInvoke := programIDsMap[acc.PublicKey]                                     // comma-ok synax* | IsInvoke is a bool in this case
 
@@ -307,7 +306,7 @@ func NewTransaction(instructions []Instruction, recentBlockHash Hash, opts ...Tr
 			if !acc.IsWritable {
 				message.Header.NumReadonlySignedAccounts++
 			}
-      continue
+			continue
 		}
 		if !acc.IsWritable {
 			message.Header.NumReadonlyUnsignedAccounts++
@@ -328,10 +327,10 @@ func NewTransaction(instructions []Instruction, recentBlockHash Hash, opts ...Tr
 				WritableIndexes: lkp.WritableIndexes,
 				ReadonlyIndexes: lkp.ReadonlyIndexes,
 			})
-    if DebugNewTransaction{
-      zlog.Debug("filled lookupsWritableKeys", zap.Int("writable_keys", len(lookupsWritableKeys)))
-      zlog.Debug("filled lookupsWritableKeys", zap.Int("readonly_keys", len(lookupsReadonlyKeys)))
-    }
+			if DebugNewTransaction {
+				zlog.Debug("filled lookupsWritableKeys", zap.Int("writable_keys", len(lookupsWritableKeys)))
+				zlog.Debug("filled lookupsWritableKeys", zap.Int("readonly_keys", len(lookupsReadonlyKeys)))
+			}
 		}
 
 		err := message.SetAddressTables(options.addressTables)
@@ -339,13 +338,13 @@ func NewTransaction(instructions []Instruction, recentBlockHash Hash, opts ...Tr
 			return nil, fmt.Errorf("message.SetAddressTables: %w", err)
 		}
 		message.SetAddressTableLookups(lookups)
-    if DebugNewTransaction{
-      zlog.Debug("set msg address tables from lookups", zap.Int("msg_alt_length", len(message.AddressTableLookups)))
-    }
+		if DebugNewTransaction {
+			zlog.Debug("set msg address tables from lookups", zap.Int("msg_alt_length", len(message.AddressTableLookups)))
+		}
 	}
 
 	var idx uint16
-  accountKeyIndex := make(map[string]uint16, len(message.AccountKeys)+len(lookupsWritableKeys)+len(lookupsReadonlyKeys))
+	accountKeyIndex := make(map[string]uint16, len(message.AccountKeys)+len(lookupsWritableKeys)+len(lookupsReadonlyKeys))
 	for _, acc := range message.AccountKeys {
 		accountKeyIndex[acc.String()] = idx
 		idx++
@@ -370,12 +369,14 @@ func NewTransaction(instructions []Instruction, recentBlockHash Hash, opts ...Tr
 	for txIdx, instruction := range instructions {
 		accounts := instruction.Accounts()
 		accountIndex := make([]uint16, len(accounts))
-    if DebugNewTransaction{zlog.Debug("processing instruction:", zap.Int("transaction_id", txIdx))}
+		if DebugNewTransaction {
+			zlog.Debug("processing instruction:", zap.Int("transaction_id", txIdx))
+		}
 		for idx, acc := range accounts {
 			accountIndex[idx] = accountKeyIndex[acc.PublicKey.String()]
-      if DebugNewTransaction{
-        zlog.Debug(fmt.Sprintf("set accountIndex[%d] with key",idx), zap.String("account_pub_key", acc.PublicKey.String()))
-      }
+			if DebugNewTransaction {
+				zlog.Debug(fmt.Sprintf("set accountIndex[%d] with key", idx), zap.String("account_pub_key", acc.PublicKey.String()))
+			}
 		}
 		data, err := instruction.Data()
 		if err != nil {
@@ -394,43 +395,57 @@ func NewTransaction(instructions []Instruction, recentBlockHash Hash, opts ...Tr
 
 type privateKeyGetter func(key PublicKey) *PrivateKey
 
-func (tx *Transaction) PartialSign(getter privateKeyGetter) (out []Signature, err error){
-  DebugNewTransaction = true
-  messageContent, err := tx.Message.MarshalBinary()
-  if err != nil{
-    return nil, fmt.Errorf("unable to encode message for signing: %w", err)
-  }
-  signerKeys := tx.Message.signerKeys()
+func (tx *Transaction) PartialSign(getter privateKeyGetter) (out []Signature, err error) {
+	DebugNewTransaction = true
+	messageContent, err := tx.Message.MarshalBinary()
+	if err != nil {
+		return nil, fmt.Errorf("unable to encode message for signing: %w", err)
+	}
+	signerKeys := tx.Message.signerKeys()
 
-  if len(tx.Signatures) == 0{
-    tx.Signatures = make([]Signature, len(signerKeys))
-  } else if len(tx.Signatures) != len(signerKeys){
-    return nil, fmt.Errorf("invalid signatures length, expected %d, actual %d", len(signerKeys), len(tx.Signatures))
-  }
-  
-  for i, key := range signerKeys{
-    privateKey := getter(key)
-    if privateKey != nil{
-      sig, err := privateKey.Sign(messageContent)
-      if err != nil{
-        return nil, fmt.Errorf("failed to sign with key %q: %w", key.String(), err)
-      }
-      // Directly assing a signature to the corresponding position the transaction's signaute slice
-      tx.Signatures[i] = sig
-    }
-  }
-  
-  return tx.Signatures, nil
+	if len(tx.Signatures) == 0 {
+		tx.Signatures = make([]Signature, len(signerKeys))
+	} else if len(tx.Signatures) != len(signerKeys) {
+		return nil, fmt.Errorf("invalid signatures length, expected %d, actual %d", len(signerKeys), len(tx.Signatures))
+	}
+
+	for i, key := range signerKeys {
+		privateKey := getter(key)
+		if privateKey != nil {
+			sig, err := privateKey.Sign(messageContent)
+			if err != nil {
+				return nil, fmt.Errorf("failed to sign with key %q: %w", key.String(), err)
+			}
+			// Directly assing a signature to the corresponding position the transaction's signaute slice
+			tx.Signatures[i] = sig
+		}
+	}
+
+	return tx.Signatures, nil
 }
 
-func (tx *Transaction) Sign(getter privateKeyGetter) (out []Signature, err error){
-  signerKeys := tx.Message.signerKeys() // returns all signed acc keys
-  for _, key := range signerKeys{
-    if getter(key) == nil{ // check if signer's `pub key` matches the `key` from signerKeys
-      return nil, fmt.Errorf("singer key %q not found. Ensure all the singer keys are in the vault", key.String())
-    }
-  }
-  return tx.PartialSign(getter)
+func (tx *Transaction) Sign(getter privateKeyGetter) (out []Signature, err error) {
+	signerKeys := tx.Message.signerKeys() // returns all signed acc keys
+	for _, key := range signerKeys {
+		if getter(key) == nil { // check if signer's `pub key` matches the `key` from signerKeys
+			return nil, fmt.Errorf("singer key %q not found. Ensure all the singer keys are in the vault", key.String())
+		}
+	}
+	return tx.PartialSign(getter)
 }
 
+func (tx Transaction) ToBase64() (string, error) {
+	txs_bytes, err := tx.MarshalBinary()
+	if err != nil {
+		return "", err
+	}
+	return base64.StdEncoding.EncodeToString(txs_bytes), nil
+}
 
+func (tx Transaction) MustToBase64() string {
+	out, err := tx.ToBase64()
+	if err != nil {
+		panic(err)
+	}
+	return out
+}

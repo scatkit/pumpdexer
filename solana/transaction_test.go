@@ -7,6 +7,7 @@ import (
 	//"github.com/mr-tron/base58"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+  "github.com/davecgh/go-spew/spew"
 )
 
 type testTransactionInstructions struct {
@@ -27,7 +28,7 @@ func (t *testTransactionInstructions) Data() ([]byte, error) {
 	return t.data, nil
 }
 
-func NewTransactions(t *testing.T) {
+func TestNewTransactions(t *testing.T) {
 	DebugNewTransaction = true
 
 	instructions := []Instruction{
@@ -55,6 +56,8 @@ func NewTransactions(t *testing.T) {
 	require.NoError(t, err)
 
 	trx, err := NewTransaction(instructions, blockhash)
+  
+  spew.Dump(trx)
 	require.NoError(t, err)
 
 	assert.Equal(t, trx.Message.Header, MessageHeader{

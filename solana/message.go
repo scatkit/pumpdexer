@@ -65,35 +65,31 @@ type MessageHeader struct {
 	// Specifies how many valid signatures are required for the transaction to be valid
 	// The signatures must match the first `numRequiredSignatures` of `message.accountKeys`.
 	NumRequiredSignatures uint8 `json:"numRequiredSignatures"`
-
 	// The last numReadonlySignedAccounts of the signed keys are read-only accounts.
 	// Programs may process multiple transactions that load read-only accounts within
 	// a single PoH entry (in parallel), but are not permitted to credit or debit lamports or modify
 	// account data.
 	// Transactions targeting the same writable account are evaluated sequentially to avoid conflicts.
 	NumReadonlySignedAccounts uint8 `json:"numReadonlySignedAccounts"`
-
 	//(e.g TokenMint acc) the last `numReadonlyUnsignedAccounts` of the unsigned keys are read-only accounts.
 	NumReadonlyUnsignedAccounts uint8 `json:"numReadOnlyUnsignedAccounts"`
 }
 type Message struct {
 	version MessageVersion
-	// List of base-58 encoded public keys used by the transaction,
-	// including by the instructions and for signatures.
-	// The first `message.header.numRequiredSignatures` public keys must sign the transaction.
+  // Includes data used to specify the read/write and signer privileges in the accountKeys array (3 bytes)
+  Header MessageHeader `json:"header"` 
+	// List of base-58 encoded public keys used by the transaction, for signatures. 
+  // The first `message.header.numRequiredSignatures` public keys must sign the transaction. 
 	AccountKeys PublicKeySlice `json:"accountKeys"`
-	// Account types and signatures required by the transaction
-	Header MessageHeader `json:"header"`
 	// A base-58 encoded hash of a recent block in the ledger used to
 	// prevent transaction duplication and to give transactions lifetimes.
 	RecentBlockhash Hash `json:"recentBlockhash"`
-	// List of program instructions that will be executed in a sequence
-	// and committed in one atomic transaction if all succeed.
+	// List of program instructions that will be executed in a sequence.
+  // Each account and programIdIndex in an instruction references the accountKeys array by index.
+	// Committed in one atomic transaction if all succeed.
 	Instructions []CompiledInstruction `json:"instructions"`
-
 	// List of address table lookups to laod additional accounts for this transaction
 	AddressTableLookups MessageAddressTableLookupSlice `json:"addressTableLookups"`
-
 	// The actual tables that contain the list of account pubkeys.
 	// NOTE: you need to fetch these from the chain, and then call `SetAddressTables`
 	// before you use this transaction -- otherwise, you will get a panic.
@@ -186,14 +182,18 @@ func (msg *Message) MarshalV0() ([]byte, error) {
 	{
 		// Encode only the keys that are not in the address table lookups.
 		staticAccountKeys := msg.getStaticKeys()
+    // 1) Number of account addressses
 		bin.EncodeCompactU16Length(&buf, len(staticAccountKeys))
+    // 2) Addresses ordered by privilege 
 		for _, key := range staticAccountKeys {
 			buf = append(buf, key[:]...)
 		}
-
+    // Max age is 150 blocks (1 minute)
 		buf = append(buf, msg.RecentBlockhash[:]...)
 
+    // 1) Number of intructions
 		bin.EncodeCompactU16Length(&buf, len(msg.Instructions))
+    // 2) Intructions
 		for _, instruction := range msg.Instructions {
 			buf = append(buf, byte(instruction.ProgramIDIndex))
 			bin.EncodeCompactU16Length(&buf, len(instruction.Accounts))
@@ -212,7 +212,7 @@ func (msg *Message) MarshalV0() ([]byte, error) {
 	buf = append([]byte{byte(versionNum + 127)}, buf...)
 
 	if msg.AddressTableLookups != nil && len(msg.AddressTableLookups) > 0 {
-		// wite length of address table lookups as u8
+		// write length of address table lookups as u8
 		buf = append(buf, byte(len(msg.AddressTableLookups)))
 		for _, lookup := range msg.AddressTableLookups {
 			// write account pubkey
