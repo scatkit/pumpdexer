@@ -221,7 +221,7 @@ func PrivateKeyFromBase58(in string) (PrivateKey, error) {
 	return out, nil
 }
 
-func MustPrivketFromBase58(in string) PrivateKey {
+func MustPrivkeyFromBase58(in string) PrivateKey {
 	out, err := PrivateKeyFromBase58(in)
 	if err != nil {
 		panic(err)

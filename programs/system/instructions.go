@@ -3,16 +3,13 @@ package system
 import (
 	"bytes"
 	"fmt"
+  "encoding/binary"
 
 	gg_binary "github.com/gagliardetto/binary"
 	scatsol "github.com/scatkit/pumpdexer/solana"
 )
 
-
-type Instruction struct {
-	gg_binary.BaseVariant
-}
-
+// Turning variables into IDs
 const (
 	// Create a new account
 	Instruction_CreateAccount uint32 = iota
@@ -51,14 +48,81 @@ const (
 	Instruction_TransferWithSeed
 )
 
-var ProgramID scatsol.PublicKey = scatsol.SystemProgramID
-func (inst *Instruction) ProgramID() scatsol.PublicKey {
-	return ProgramID
+// Instruction that returns a name of a program instruction by ID
+func InstructionIDToName(id uint32) string {
+	switch id {
+	case Instruction_CreateAccount:
+		return "CreateAccount"
+	case Instruction_Assign:
+		return "Assign"
+	case Instruction_Transfer:
+		return "Transfer"
+	case Instruction_CreateAccountWithSeed:
+		return "CreateAccountWithSeed"
+	case Instruction_AdvanceNonceAccount:
+		return "AdvanceNonceAccount"
+	case Instruction_WithdrawNonceAccount:
+		return "WithdrawNonceAccount"
+	case Instruction_InitializeNonceAccount:
+		return "InitializeNonceAccount"
+	case Instruction_AuthorizeNonceAccount:
+		return "AuthorizeNonceAccount"
+	case Instruction_Allocate:
+		return "Allocate"
+	case Instruction_AllocateWithSeed:
+		return "AllocateWithSeed"
+	case Instruction_AssignWithSeed:
+		return "AssignWithSeed"
+	case Instruction_TransferWithSeed:
+		return "TransferWithSeed"
+	default:
+		return ""
+	}
 }
 
-// AccountGettable is interface 
-func (inst *Instruction) Accounts() (out []*scatsol.AccountMeta) {
-	return inst.Impl.(scatsol.AccountsGettable).GetAccounts()
+type Instruction struct {
+  gg_binary.BaseVariant
+}
+
+var ProgramID scatsol.PublicKey = scatsol.SystemProgramID
+
+func SetProgramID(pubkey scatsol.PublicKey){
+  ProgramID = pubkey
+  scatsol.RegisterInstructionDecoder(ProgramID, registryDecodeInstruction)
+}
+
+const ProgramName = "System"
+
+func init() {
+	scatsol.RegisterInstructionDecoder(ProgramID, registryDecodeInstruction)
+} 
+
+func registryDecodeInstruction(accounts []*scatsol.AccountMeta, data []byte) (interface{}, error) {
+  inst, err := DecodeInstruction(accounts, data)
+  if err != nil {
+    return nil, err
+  }
+  return inst, nil
+}
+
+// Instruction DECODER itself
+func DecodeInstruction(accounts []*scatsol.AccountMeta, data []byte) (*Instruction, error) {
+	inst := new(Instruction)
+	if err := gg_binary.NewBinDecoder(data).Decode(inst); err != nil {
+		return nil, fmt.Errorf("unable to decode instruction: %w", err)
+	}
+	if v, ok := inst.Impl.(scatsol.AccountsSettable); ok {
+		err := v.SetAccounts(accounts)
+		if err != nil {
+			return nil, fmt.Errorf("unable to set accounts for instruction: %w", err)
+		}
+	}
+	return inst, nil
+}
+
+// Instructions methods ---
+func (inst *Instruction) Accounts() (out []*scatsol.AccountMeta) { 
+	return inst.Impl.(scatsol.AccountsGettable).GetAccounts() // AccountsGettable is an interface
 }
 
 func (inst *Instruction) Data() ([]byte, error) {
@@ -68,3 +132,30 @@ func (inst *Instruction) Data() ([]byte, error) {
 	}
 	return buf.Bytes(), nil
 }
+
+func (inst *Instruction) ProgramID() scatsol.PublicKey {
+	return ProgramID
+}
+// ---
+
+var InstructionImplDef = gg_binary.NewVariantDefinition(
+	gg_binary.Uint32TypeIDEncoding,
+	[]gg_binary.VariantType{ {
+			"Transfer", (*Transfer)(nil),
+		},
+	},
+)
+
+func (inst *Instruction) UnmarshalWithDecoder(decoder *gg_binary.Decoder) error {
+	return inst.BaseVariant.UnmarshalBinaryVariant(decoder, InstructionImplDef)
+}
+
+func (inst Instruction) MarshalWithEncoder(encoder *gg_binary.Encoder) error {
+	err := encoder.WriteUint32(inst.TypeID.Uint32(), binary.LittleEndian)
+	if err != nil {
+		return fmt.Errorf("unable to write variant type: %w", err)
+	}
+	return encoder.Encode(inst.Impl)
+}
+
+
