@@ -21,7 +21,11 @@ type SignatureStatusesResult struct {
 
 func (cl *Client) GetSignatureStatuses(ctx context.Context, searchTransactionHistory bool, transactionSignatures ...solana.Signature,
 ) (out *GetSignatureStatusesResult, err error) {
+  
 	params := []interface{}{transactionSignatures}
+  if searchTransactionHistory{
+    params = append(params, map[string]interface{}{"searchTransactionHistory":searchTransactionHistory})
+  }
   
   err = cl.rpcClient.CallForInfo(ctx, &out, "getSignatureStatuses", params)
   if err != nil{

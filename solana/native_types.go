@@ -100,6 +100,19 @@ func (s Signature) String() string {
 	return base58.Encode(s[:])
 }
 
+func (p *Signature) UnmarshalText(data []byte) (err error) {
+	tmp, err := SignatureFromBase58(string(data))
+	if err != nil {
+		return fmt.Errorf("invalid signature %q: %w", string(data), err)
+	}
+	*p = tmp
+	return
+}
+
+func (p Signature) MarshalJSON() ([]byte, error) {
+	return json.Marshal(base58.Encode(p[:]))
+}
+
 func (p *Signature) UnmarshalJSON(data []byte) (err error) {
 	var s string
 	err = json.Unmarshal(data, &s)
