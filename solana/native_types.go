@@ -88,6 +88,29 @@ func SignatureFromBase58(b58Trans string) (out Signature, err error) {
 	return out, err
 }
 
+func SignatureFromBytes(in []byte) (out Signature){
+  byteCount := len(in)
+  if byteCount == 0{
+    return
+  }
+
+  max := SignatureLength
+  if byteCount > max{
+    max = byteCount
+  }
+  
+  copy(out[:], in[0:max])
+  return
+}
+
+func MustSignatureFromBase58(in string) Signature{
+  out, err := SignatureFromBase58(in)
+  if err != nil{
+    panic(err)
+  }
+  return out
+}
+
 func (sig Signature) IsZero() bool {
 	return sig == zeroSignature
 }
