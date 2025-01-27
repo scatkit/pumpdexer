@@ -19,6 +19,20 @@ type AccountInfoResult struct{
   Value *Account `json:"value"`
 }
 
+
+func (a *AccountInfoResult) GetBinary() []byte{
+  if a == nil{
+    return nil
+  }
+  if a.Value == nil{
+    return nil
+  }
+  if a.Value.Data == nil{
+    return nil
+  }
+  return a.Value.Data.GetBinary()
+}
+
 type Account struct{
   Lamports uint64 `json:"lamports"`
   Owner solana.PublicKey `json:"owner"` 
