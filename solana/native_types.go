@@ -160,6 +160,26 @@ func (p *Signature) UnmarshalJSON(data []byte) (err error) {
 
 type Base58 []byte
 
+func (t Base58) MarshalJSON() ([]byte, error){
+  return json.Marshal(base58.Encode(t))
+}
+
+func (t *Base58) UnmarshalJSON(data []byte) error{
+  var str string
+  err := json.Unmarshal(data, &str)
+  if err != nil{
+    return err
+  }
+  
+  if str == ""{
+    *t = []byte{}
+    return nil 
+  }
+  
+  *t, err = base58.Decode(str)
+  return nil
+}
+
 type Hash PublicKey
 
 // Decodes a base-58 string into Hash
