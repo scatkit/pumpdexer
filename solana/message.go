@@ -78,8 +78,8 @@ type Message struct {
 	version MessageVersion
   // Includes data used to specify the read/write and signer privileges in the accountKeys array (3 bytes)
   Header MessageHeader `json:"header"` 
-	// List of base-58 encoded public keys used by the transaction, for signatures. 
-  // The first `message.header.numRequiredSignatures` public keys must sign the transaction. 
+	// Compact array of base-58 encoded public keys used by the transaction, for signatures. 
+  // FIRST: `message.header.numRequiredSignatures` public keys (must sign the transaction) | SECOND: `message.header.NumReadonlyUnsignedAcocunts`
 	AccountKeys PublicKeySlice `json:"accountKeys"`
 	// A base-58 encoded hash of a recent block in the ledger used to
 	// prevent transaction duplication and to give transactions lifetimes.
@@ -94,7 +94,6 @@ type Message struct {
 	// NOTE: you need to fetch these from the chain, and then call `SetAddressTables`
 	// before you use this transaction -- otherwise, you will get a panic.
 	addressTables map[PublicKey]PublicKeySlice
-
 	resolved bool //if true, the lookups have been resolved, and the `AccountKeys` slice contains all the accounts (static + dynamic)
 }
 
@@ -495,4 +494,13 @@ func (msg *Message) SetAddressTableLookups(lookups []MessageAddressTableLookup) 
   msg.AddressTableLookups = lookups
   msg.version = MessageVersionV0
   return msg
+}
+
+// Program returns the program key at the given index `e.g tx.Message.Program(intsr.ProgramIdIndex)`
+func (m Message) Program(programIDIndex uint16) (PublicKey, error) {
+	// programIDIndex always in AccountKeys
+	if int(programIDIndex) < len(m.AccountKeys) {
+		return m.AccountKeys[programIDIndex], nil
+	}
+	return PublicKey{}, fmt.Errorf("programID index not found %d", programIDIndex)
 }
