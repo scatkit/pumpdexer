@@ -11,11 +11,11 @@ import (
 )
 
 type Transaction struct {
-	/* A list of base-58 encoded signatures applied to the transaction.
-	   The signature at index `I` corresponds to the public key at index `I */
-	Signatures []Signature `json:"signatures"` // (64 bytes each)
+	// A compact array of base-58 encoded signatures applied to the transaction.
+	// The signature at index `I` corresponds to the public key at index 
+	Signatures []Signature `json:"signatures"` // 64 bytes * num of signatures
 	// Content of the message
-	Message Message `json:"message"` // (32 bytes each)
+	Message Message `json:"message"`
 }
 
 func (tx *Transaction) UnmarshalBase64(b64 string) error { // <- accepts base64 string
@@ -96,7 +96,7 @@ func (tx *Transaction) UnmarshalWithDecoder(decoder *bin.Decoder) (err error) {
 
 type CompiledInstruction struct {
 	// Index into the message.accountKeys array indicating the (program account) that executes this instruction.
-	// NOTE: it is actually a uint8, but using a uint16 because uint8 is treated as a byte everywhere, and that can be an issue.
+	// NOTE: it is actually uint8, but using a uint16 because uint8 is treated as a byte everywhere, and that can be an issue.
 	ProgramIDIndex uint16 `json:"programIdIndex"`
 	// List of ordered indices into the message.accountKeys array indicating which accounts to pass to the program.
 	// NOTE: it is actually a []uint8, but using a uint16 because []uint8 is treated as a []byte everywhere, and that can be an issue.
@@ -148,7 +148,7 @@ func NewTransaction(instructions []Instruction, recentBlockHash Hash, opts ...Tr
 
 	// OPTS
 	options := transactionOptions{}
-	for _, opt := range opts { // range over the functional options (e.g TransactionPayer)
+	for _, opt := range opts { // range over the opts (TransactionPayer,)
 		opt.apply(&options) // modifies options var by including opts from `transactionOptions` (payer or addressTables)
 	}
 
