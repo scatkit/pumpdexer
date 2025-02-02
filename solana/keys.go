@@ -2,11 +2,13 @@ package solana
 
 import (
 	"fmt"
+  "math"
 	//"encoding/json"
 	"crypto"
 	"crypto/ed25519"
 	crypto_rand "crypto/rand"
 	"errors"
+  "crypto/sha256"
 
 	"filippo.io/edwards25519"
 	"github.com/mr-tron/base58"
@@ -229,4 +231,67 @@ func MustPrivkeyFromBase58(in string) PrivateKey {
 	return out
 }
 
+const PDA_MARKER = "ProgramDerivedAddress"
 
+// creates a program address
+func CreateProgramAddress(seeds [][]byte, programID PublicKey) (PublicKey, error) {
+	if len(seeds) > MaxSeeds { // max 16
+		return PublicKey{}, errors.New("max length exceeded")
+	}
+
+	for _, seed := range seeds {
+		if len(seed) > MaxSeedLength { // max seed is 32 bytes
+			return PublicKey{}, errors.New("max length exceeded") 
+		}
+	}
+
+	buf := []byte{}
+	for _, seed := range seeds {
+		buf = append(buf, seed...)
+	}
+
+	buf = append(buf, programID[:]...)
+	buf = append(buf, []byte(PDA_MARKER)...)
+	hash := sha256.Sum256(buf)
+
+	if IsOnCurve(hash[:]) {
+		return PublicKey{}, errors.New("invalid seeds; address must fall off the curve")
+	}
+
+	return PublicKeyFromBytes(hash[:]), nil
+}
+
+func FindProgramAddress(seed [][]byte, programID PublicKey) (PublicKey, uint8, error){
+  var address PublicKey
+  var err error
+  // start with the Max seed
+  bumpSeed := uint8(math.MaxUint8) 
+  
+  for bumpSeed != 0{
+    address, err = CreateProgramAddress(append(seed, []byte{byte(bumpSeed)}), programID)
+    if err == nil{
+      return address, bumpSeed, nil
+    }
+    bumpSeed--
+  }
+
+  return PublicKey{}, bumpSeed, errors.New("unable to find valid program address")
+}
+
+// ATA is created from user's wallet + token mint's address
+func FindAssociatedTokenAddress(wallet PublicKey, mint PublicKey,
+) (PublicKey, uint8, error){
+  return findAssociatedTokenAddressAndBumpSeed(wallet, mint, SPLAssociatedTokenAccountProgramID)
+}
+
+func findAssociatedTokenAddressAndBumpSeed(walletAddress PublicKey, splTokenMintAddress PublicKey,programID PublicKey,
+) (PublicKey, uint8, error){
+	return FindProgramAddress([][]byte{
+		walletAddress[:],
+		TokenProgramID[:],
+		splTokenMintAddress[:], // <-- ATA program 
+	},
+		programID, // <-- this program defines a common implementation for Fungible and Non Fungible tokens.
+
+	)
+}
