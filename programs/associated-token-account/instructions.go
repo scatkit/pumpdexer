@@ -28,7 +28,7 @@ func registryDecodeInstruction(accounts []*solana.AccountMeta, data []byte) (int
 }
 
 type Instruction struct {
-	bin.BasVariant
+	bin.BaseVariant
 }
 
 // the programID instruction acts on
