@@ -9,6 +9,21 @@ import (
 	scatsol "github.com/scatkit/pumpdexer/solana"
 )
 
+var ProgramID scatsol.PublicKey = scatsol.SystemProgramID
+
+//func SetProgramID(pubkey scatsol.PublicKey){
+//  ProgramID = pubkey
+//  scatsol.RegisterInstructionDecoder(ProgramID, registryDecodeInstruction)
+//}
+
+const ProgramName = "System"
+
+
+// executes automatically when package is initialized
+func init() {
+  scatsol.RegisterInstructionDecoder(ProgramID, registryDecodeInstruction)
+} 
+
 // Turning variables into IDs
 const (
 	// Create a new account
@@ -49,53 +64,37 @@ const (
 )
 
 // Instruction that returns a name of a program instruction by ID
-func InstructionIDToName(id uint32) string {
-	switch id {
-	case Instruction_CreateAccount:
-		return "CreateAccount"
-	case Instruction_Assign:
-		return "Assign"
-	case Instruction_Transfer:
-		return "Transfer"
-	case Instruction_CreateAccountWithSeed:
-		return "CreateAccountWithSeed"
-	case Instruction_AdvanceNonceAccount:
-		return "AdvanceNonceAccount"
-	case Instruction_WithdrawNonceAccount:
-		return "WithdrawNonceAccount"
-	case Instruction_InitializeNonceAccount:
-		return "InitializeNonceAccount"
-	case Instruction_AuthorizeNonceAccount:
-		return "AuthorizeNonceAccount"
-	case Instruction_Allocate:
-		return "Allocate"
-	case Instruction_AllocateWithSeed:
-		return "AllocateWithSeed"
-	case Instruction_AssignWithSeed:
-		return "AssignWithSeed"
-	case Instruction_TransferWithSeed:
-		return "TransferWithSeed"
-	default:
-		return ""
-	}
-}
+//func InstructionIDToName(id uint32) string {
+//	switch id {
+//	case Instruction_CreateAccount:
+//		return "CreateAccount"
+//	case Instruction_Transfer:
+//		return "Transfer"
+//	default:
+//		return ""
+//	}
+//}
 
 type Instruction struct {
   gg_binary.BaseVariant
 }
 
-var ProgramID scatsol.PublicKey = scatsol.SystemProgramID
-
-func SetProgramID(pubkey scatsol.PublicKey){
-  ProgramID = pubkey
-  scatsol.RegisterInstructionDecoder(ProgramID, registryDecodeInstruction)
+func (inst *Instruction) ProgramID() scatsol.PublicKey {
+  return ProgramID
 }
 
-const ProgramName = "System"
+func (inst *Instruction) Accounts() (out []*scatsol.AccountMeta) { 
+  return inst.Impl.(scatsol.AccountsGettable).GetAccounts() // AccountsGettable is an interface
+}
 
-func init() {
-	scatsol.RegisterInstructionDecoder(ProgramID, registryDecodeInstruction)
-} 
+func (inst *Instruction) Data() ([]byte, error) {
+  buf := new(bytes.Buffer)
+  if err := gg_binary.NewBinEncoder(buf).Encode(inst); err != nil {
+    return nil, fmt.Errorf("unable to encode instruction: %w", err)
+  }
+  return buf.Bytes(), nil
+}
+
 
 func registryDecodeInstruction(accounts []*scatsol.AccountMeta, data []byte) (interface{}, error) {
   inst, err := DecodeInstruction(accounts, data)
@@ -105,7 +104,6 @@ func registryDecodeInstruction(accounts []*scatsol.AccountMeta, data []byte) (in
   return inst, nil
 }
 
-// Instruction DECODER itself
 func DecodeInstruction(accounts []*scatsol.AccountMeta, data []byte) (*Instruction, error) {
 	inst := new(Instruction)
 	if err := gg_binary.NewBinDecoder(data).Decode(inst); err != nil {
@@ -120,28 +118,16 @@ func DecodeInstruction(accounts []*scatsol.AccountMeta, data []byte) (*Instructi
 	return inst, nil
 }
 
-// Instructions methods ---
-func (inst *Instruction) Accounts() (out []*scatsol.AccountMeta) { 
-	return inst.Impl.(scatsol.AccountsGettable).GetAccounts() // AccountsGettable is an interface
-}
-
-func (inst *Instruction) Data() ([]byte, error) {
-	buf := new(bytes.Buffer)
-	if err := gg_binary.NewBinEncoder(buf).Encode(inst); err != nil {
-		return nil, fmt.Errorf("unable to encode instruction: %w", err)
-	}
-	return buf.Bytes(), nil
-}
-
-func (inst *Instruction) ProgramID() scatsol.PublicKey {
-	return ProgramID
-}
-// ---
-
 var InstructionImplDef = gg_binary.NewVariantDefinition(
 	gg_binary.Uint32TypeIDEncoding,
-	[]gg_binary.VariantType{ {
-			"Transfer", (*Transfer)(nil),
+	[]gg_binary.VariantType{
+    {
+      Name: "Transfer",
+      Type: (*Transfer)(nil),
+		},
+    {
+      Name: "CreaetAccount",
+      Type: (*CreateAccount)(nil),
 		},
 	},
 )

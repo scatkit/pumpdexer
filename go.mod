@@ -18,6 +18,7 @@ require (
 
 require (
 	github.com/blendle/zapdriver v1.3.1 // indirect
+	github.com/gagliardetto/gofuzz v1.2.2 // indirect
 	github.com/google/go-cmp v0.6.0 // indirect
 	github.com/logrusorgru/aurora v2.0.3+incompatible // indirect
 	github.com/mitchellh/go-testing-interface v1.14.1 // indirect

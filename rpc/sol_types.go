@@ -139,4 +139,94 @@ type TransactionOpts struct{
   MinContextSlot *uint64              `json:"minContextSlot"`
 }
 
+//instructions that happen within the given insutruction
+type InnerInstruction struct{
+  Index uint16 `json:"index"`
+  Instructions []CompiledInstruction `json:"instructions"`
+}
 
+type CompiledInstruction struct {
+	// Index into the message.accountKeys array indicating the program account that executes this instruction.
+	// NOTE: it is actually a uint8, but using a uint16 because uint8 is treated as a byte everywhere,
+	// and that can be an issue.
+	ProgramIDIndex uint16 `json:"programIdIndex"`
+	// List of ordered indices into the message.accountKeys array indicating which accounts to pass to the program.
+	// NOTE: it is actually a []uint8, but using a uint16 because []uint8 is treated as a []byte everywhere,
+	// and that can be an issue.
+	Accounts []uint16 `json:"accounts"`
+	// The program input data encoded in a base-58 string.
+	Data solana.Base58 `json:"data"`
+	StackHeight uint16 `json:"stackHeight"`
+}
+
+type TransactionMeta struct{
+  // Error if transaction failed, null if transaction succeeded.
+  Err interface{} `json:"err"`
+  // Fee this transaction was charged
+	Fee uint64 `json:"fee"`
+  // Array of uint64 account balances from before the transaction was processed
+	PreBalances []uint64 `json:"preBalances"`
+  // Array of uint64 account balances after the transaction was processed
+	PostBalances []uint64 `json:"postBalances"`
+  // List of inner instructions  or omitted if inner instruction recording
+	// was not yet enabled during this transaction.
+	InnerInstructions []InnerInstruction `json:"innerInstructions"`
+  // List of token balances from before the transaction was processed
+	// or omitted if token balance recording was not yet enabled during this transaction
+	PreTokenBalances []TokenBalance `json:"preTokenBalances"`
+  // List of token balances from after the transaction was processed
+	// or omitted if token balance recording was not yet enabled during this transaction
+	PostTokenBalances []TokenBalance `json:"postTokenBalances"`
+  // Array of string log messages or omitted if log message
+	// recording was not yet enabled during this transaction
+	LogMessages []string `json:"logMessages"`
+  Rewards []BlockReward `json:"rewards"`
+	LoadedAddresses LoadedAddresses `json:"loadedAddresses"`
+	ReturnData ReturnData `json:"returnData"`
+	ComputeUnitsConsumed *uint64 `json:"computeUnitsConsumed"`
+}
+
+type LoadedAddresses struct {
+	ReadOnly solana.PublicKeySlice `json:"readonly"`
+	Writable solana.PublicKeySlice `json:"writable"`
+}
+
+type ReturnData struct {
+	ProgramId solana.PublicKey `json:"programId"`
+	Data      solana.Data      `json:"data"`
+}
+
+type TokenBalance struct{
+  // Index of the account in which the token balance is provided for.
+	AccountIndex uint16 `json:"accountIndex"`
+  // Pubkey of token balance's owner.
+	Owner *solana.PublicKey `json:"owner,omitempty"`
+  // Pubkey of token program.
+	ProgramId *solana.PublicKey `json:"programId,omitempty"`
+  // Pubkey of the token's mint.
+	Mint          solana.PublicKey `json:"mint"`
+	UiTokenAmount *UiTokenAmount   `json:"uiTokenAmount"`
+}
+
+type RewardType string
+
+const (
+	RewardTypeFee     RewardType = "Fee"
+	RewardTypeRent    RewardType = "Rent"
+	RewardTypeVoting  RewardType = "Voting"
+	RewardTypeStaking RewardType = "Staking"
+)
+
+type BlockReward struct {
+	// The public key of the account that received the reward.
+	Pubkey solana.PublicKey `json:"pubkey"`
+	// Number of reward lamports credited or debited by the account, as a i64.
+	Lamports int64 `json:"lamports"`
+	// Account balance in lamports after the reward was applied.
+	PostBalance uint64 `json:"postBalance"`
+	// Type of reward: "Fee", "Rent", "Voting", "Staking".
+	RewardType RewardType `json:"rewardType"`
+	// Vote account commission when the reward was credited,
+	// only present for voting and staking rewards.
+	Commission *uint8 `json:"commission,omitempty"`
+}

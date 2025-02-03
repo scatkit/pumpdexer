@@ -14,7 +14,7 @@ import (
 
 const URL_ENDPOINT = "wss://api.mainnet-beta.solana.com"
 
-func main_changeLater() {
+func mainchangeLater() {
 	ws_client, err := ws.ConnectWithOptions(context.Background(), URL_ENDPOINT, nil)
   http_client := rpc.New("https://api.mainnet-beta.solana.com")
   

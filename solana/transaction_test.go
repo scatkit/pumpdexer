@@ -7,7 +7,7 @@ import (
 	//"github.com/mr-tron/base58"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-  "github.com/davecgh/go-spew/spew"
+  //"github.com/davecgh/go-spew/spew"
 )
 
 type testTransactionInstructions struct {
@@ -57,7 +57,6 @@ func TestNewTransactions(t *testing.T) {
 
 	trx, err := NewTransaction(instructions, blockhash)
   
-  spew.Dump(trx)
 	require.NoError(t, err)
 
 	assert.Equal(t, trx.Message.Header, MessageHeader{

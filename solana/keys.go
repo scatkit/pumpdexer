@@ -288,10 +288,10 @@ func findAssociatedTokenAddressAndBumpSeed(walletAddress PublicKey, splTokenMint
 ) (PublicKey, uint8, error){
 	return FindProgramAddress([][]byte{
 		walletAddress[:],
-		TokenProgramID[:],
-		splTokenMintAddress[:], // <-- ATA program 
+		TokenProgramID[:], // <-- this program defines a common implementation for Fungible and Non Fungible tokens
+		splTokenMintAddress[:],
 	},
-		programID, // <-- this program defines a common implementation for Fungible and Non Fungible tokens.
+		programID, // <-- ATA program
 
 	)
 }
