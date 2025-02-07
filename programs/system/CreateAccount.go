@@ -12,7 +12,7 @@ import(
 type CreateAccount struct{
   Lamports *uint64 // num of lamprots transfer to the new account
   Space *uint64 // num of bytes of memory to allocate
-  Owner *solana.PublicKey // wallet who'll own the new account
+  Owner *solana.PublicKey // address of the program that will own the account
   // [0] = [WRITE, SIGNER] FundingAccount: `Funding account`
 	// [1] = [WRITE, SIGNER] NewAccount: `New account`
 	AccountMetaSlice solana.AccountMetaSlice `bin:"-" borsh_skip:"true"`
