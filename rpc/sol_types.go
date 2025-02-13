@@ -48,6 +48,10 @@ type DataBytesOrJSON struct{
   asJSON          stdjson.RawMessage
 }
 
+func (dt *DataBytesOrJSON) GetRawJSON() stdjson.RawMessage{
+  return dt.asJSON
+}
+
 func (wrap *DataBytesOrJSON) UnmarshalJSON(data []byte) error {
 	if len(data) == 0 || (len(data) == 4 && string(data) == "null") {
 		// TODO: is this an error?
