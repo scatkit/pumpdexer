@@ -40,6 +40,10 @@ const(
 	account. 
   */
 	Instruction_InitializeAccount uint8 = iota
+  
+  // Close an account by transferring all its SOL to the destination account.
+	// Non-native accounts may only be closed if its token amount is zero.
+  Instruction_CloseAccount
 )
 
 type Instruction struct {
