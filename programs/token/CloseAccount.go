@@ -116,7 +116,7 @@ func (obj *CloseAccount) UnmarshalWithDecoder(decoder *bin.Decoder) (err error) 
 }
 
 // Declares a new CloseAccount instruction with the provided parameters and accounts.
-func NewCloseAccountInstuction(
+func NewCloseAccountInstruction(
   // Accounts:
   account solana.PublicKey,
   destination solana.PublicKey,
