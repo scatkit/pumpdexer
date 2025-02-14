@@ -110,7 +110,6 @@ func (inst *Create) UnmarshalWithDecoder(decoder *bin.Decoder) error {
 	return nil
 }
 
-
 // NewCreateInstructionBuilder creates a new `Create` instruction builder.
 func NewCreateInstructionBuilder() *Create {
 	nd := &Create{}

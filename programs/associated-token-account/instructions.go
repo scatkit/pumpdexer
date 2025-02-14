@@ -15,6 +15,8 @@ func SetProgramID(pubkey solana.PublicKey) {
 	solana.RegisterInstructionDecoder(ProgramID, registryDecodeInstruction)
 }
 
+const ProgramName = "AssociatedTokenAccount"
+
 func init() {
 	solana.RegisterInstructionDecoder(ProgramID, registryDecodeInstruction)
 }
@@ -60,6 +62,9 @@ func (inst *Instruction) UnmarshalWithDecoder(decoder *bin.Decoder) error{
   return inst.BaseVariant.UnmarshalBinaryVariant(decoder, InstructionImplDef)
 }
 
+func (inst Instruction) MarshalWithEncoder(encoder *bin.Encoder) error {
+	return encoder.Encode(inst.Impl)
+}
 
 func DecodeInstruction(accounts []*solana.AccountMeta, data []byte) (*Instruction, error) {
 	inst := new(Instruction)

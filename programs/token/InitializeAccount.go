@@ -11,7 +11,7 @@ type InitializeAccount struct{
 	// [1] = [] Mint:                 `The mint this account will be associated with`
 	// [2] = [] Owner:                `The new account's owner/multisignature`
 	// [3] = [] $(SysVarRentPubkey):  `Rent sysvar`
-  AccountMetaSlice solana.AccountMetaSlice `bin:"-" borsh_skip:"true"`
+  solana.AccountMetaSlice `bin:"-" borsh_skip:"true"` // has to be ananomys for bin to access it
 }
 
 // NewInitializeAccountInstructionBuilder creates a new `InitializeAccount` instruction builder.

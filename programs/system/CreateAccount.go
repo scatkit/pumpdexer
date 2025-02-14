@@ -15,7 +15,7 @@ type CreateAccount struct{
   Owner *solana.PublicKey // address of the program that will own the account
   // [0] = [WRITE, SIGNER] FundingAccount: `Funding account`
 	// [1] = [WRITE, SIGNER] NewAccount: `New account`
-	AccountMetaSlice solana.AccountMetaSlice `bin:"-" borsh_skip:"true"`
+  solana.AccountMetaSlice `bin:"-" borsh_skip:"true"`
 }
 
 // NewCreateAccountInstructionBuilder creates a new `CreateAccount` instruction builder.
@@ -49,12 +49,19 @@ func (inst *CreateAccount) SetFundingAccount(fundingAccount solana.PublicKey) *C
 	inst.AccountMetaSlice[0] = solana.Meta(fundingAccount).WRITE().SIGNER()
 	return inst
 }
+func (inst *CreateAccount) GetFundingAccount() *solana.AccountMeta{
+  return inst.AccountMetaSlice[0]
+}
 
-// Setting new account
+// Setting new account 
 func (inst *CreateAccount) SetNewAccount(newAccount solana.PublicKey) *CreateAccount { 
 	inst.AccountMetaSlice[1] = solana.Meta(newAccount).WRITE().SIGNER()
 	return inst
 }
+func (inst *CreateAccount) GetNewAccount() *solana.AccountMeta{
+  return inst.AccountMetaSlice[1]
+}
+
  
 // NewCreateAccountInstruction declares a new CreateAccount instruction with the provided parameters and accounts.
 func NewCreateAccountInstruction(
