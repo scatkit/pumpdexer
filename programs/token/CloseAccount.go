@@ -17,6 +17,17 @@ type CloseAccount struct{
   Signers solana.AccountMetaSlice `bin:"-" borsh_skip:"true"`
 }
 
+func (obj *CloseAccount) SetAccounts(accounts []*solana.AccountMeta) error{
+  obj.Accounts, obj.Signers = solana.AccountMetaSlice(accounts).SplitFrom(3)
+  return nil
+}
+
+func (slice CloseAccount) GetAccounts() (accounts []*solana.AccountMeta) {
+	accounts = append(accounts, slice.Accounts...)
+	accounts = append(accounts, slice.Signers...)
+	return
+}
+
 func NewCloseAccountBuilder() *CloseAccount{
   return &CloseAccount{
     Accounts: make(solana.AccountMetaSlice, 3),
