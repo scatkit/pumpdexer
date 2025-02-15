@@ -70,8 +70,7 @@ var InstructionImplDef = bin.NewVariantDefinition(
 	bin.Uint8TypeIDEncoding,
 	[]bin.VariantType{
 		{
-      Name: "InitializeAccount",
-			Type: (*InitializeAccount)(nil),
+      "InitializeAccount", (*InitializeAccount)(nil),
 		},
   },
 )

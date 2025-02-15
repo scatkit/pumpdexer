@@ -52,8 +52,7 @@ var InstructionImplDef = bin.NewVariantDefinition(
 	bin.NoTypeIDEncoding, // NOTE: the associated-token-account program has no ID encoding.
 	[]bin.VariantType{
     {
-      Name: "Create",
-      Type: (*Create)(nil), // passing the nil poiner
+      "Create", (*Create)(nil), // passing the nil poiner
     },
   },
 )

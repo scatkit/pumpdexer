@@ -122,12 +122,10 @@ var InstructionImplDef = gg_binary.NewVariantDefinition(
 	gg_binary.Uint32TypeIDEncoding,
 	[]gg_binary.VariantType{
     {
-      Name: "Transfer",
-      Type: (*Transfer)(nil),
+      "Transfer", (*Transfer)(nil),
 		},
     {
-      Name: "CreaetAccount",
-      Type: (*CreateAccount)(nil),
+      "CreaetAccount", (*CreateAccount)(nil),
 		},
 	},
 )
