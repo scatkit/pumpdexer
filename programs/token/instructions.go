@@ -29,7 +29,7 @@ import (
 // Maximum number of multisignature signers (max N)
 const MAX_SIGNERS = 11
 
-var ProgramID solana.PublicKey = solana.TokenProgramID
+var ProgramID solana.PublicKey = solana.TokenProgramID 
 
 func SetProgramID(pubkey solana.PublicKey) {
 	ProgramID = pubkey
