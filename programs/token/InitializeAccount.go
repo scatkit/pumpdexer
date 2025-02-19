@@ -1,78 +1,118 @@
+// Copyright 2021 github.com/gagliardetto
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package token
+
 import (
 	"errors"
 
-  bin "github.com/gagliardetto/binary"
-  "github.com/scatkit/pumpdexer/solana"
+	ag_binary "github.com/gagliardetto/binary"
+	ag_solanago "github.com/scatkit/pumpdexer/solana"
 )
 
-type InitializeAccount struct{
-  // [0] = [WRITE] Account:         `The account to initalize`
-	// [1] = [] Mint:                 `The mint this account will be associated with`
-	// [2] = [] Owner:                `The new account's owner/multisignature`
-	// [3] = [] $(SysVarRentPubkey):  `Rent sysvar`
-  solana.AccountMetaSlice `bin:"-" borsh_skip:"true"` // has to be ananomys for bin to access it
+// Initializes a new account to hold tokens.  If this account is associated
+// with the native mint then the token balance of the initialized account
+// will be equal to the amount of SOL in the account. If this account is
+// associated with another mint, that mint must be initialized before this
+// command can succeed.
+//
+// The `InitializeAccount` instruction requires no signers and MUST be
+// included within the same Transaction as the system program's
+// `CreateAccount` instruction that creates the account being initialized.
+// Otherwise another party can acquire ownership of the uninitialized
+// account.
+type InitializeAccount struct {
+
+	// [0] = [WRITE] account
+	// ··········· The account to initialize.
+	//
+	// [1] = [] mint
+	// ··········· The mint this account will be associated with.
+	//
+	// [2] = [] owner
+	// ··········· The new account's owner/multisignature.
+	//
+	// [3] = [] $(SysVarRentPubkey)
+	// ··········· Rent sysvar.
+	ag_solanago.AccountMetaSlice `bin:"-" borsh_skip:"true"`
 }
 
 // NewInitializeAccountInstructionBuilder creates a new `InitializeAccount` instruction builder.
 func NewInitializeAccountInstructionBuilder() *InitializeAccount {
 	nd := &InitializeAccount{
-		AccountMetaSlice: make(solana.AccountMetaSlice, 4),
+		AccountMetaSlice: make(ag_solanago.AccountMetaSlice, 4),
 	}
-	nd.AccountMetaSlice[3] = solana.Meta(solana.SysVarRentPubkey)
+	nd.AccountMetaSlice[3] = ag_solanago.Meta(ag_solanago.SysVarRentPubkey)
 	return nd
 }
 
 // SetAccount sets the "account" account.
 // The account to initialize.
-func (inst *InitializeAccount) SetAccount(account solana.PublicKey) *InitializeAccount {
-	inst.AccountMetaSlice[0] = solana.Meta(account).WRITE()
+func (inst *InitializeAccount) SetAccount(account ag_solanago.PublicKey) *InitializeAccount {
+	inst.AccountMetaSlice[0] = ag_solanago.Meta(account).WRITE()
 	return inst
 }
- 
+
+// GetAccount gets the "account" account.
+// The account to initialize.
+func (inst *InitializeAccount) GetAccount() *ag_solanago.AccountMeta {
+	return inst.AccountMetaSlice[0]
+}
+
 // SetMintAccount sets the "mint" account.
 // The mint this account will be associated with.
-func (inst *InitializeAccount) SetMintAccount(mint solana.PublicKey) *InitializeAccount {
-	inst.AccountMetaSlice[1] = solana.Meta(mint)
+func (inst *InitializeAccount) SetMintAccount(mint ag_solanago.PublicKey) *InitializeAccount {
+	inst.AccountMetaSlice[1] = ag_solanago.Meta(mint)
 	return inst
 }
 
 // GetMintAccount gets the "mint" account.
 // The mint this account will be associated with.
-func (inst *InitializeAccount) GetMintAccount() *solana.AccountMeta{
+func (inst *InitializeAccount) GetMintAccount() *ag_solanago.AccountMeta {
 	return inst.AccountMetaSlice[1]
 }
 
 // SetOwnerAccount sets the "owner" account.
 // The new account's owner/multisignature.
-func (inst *InitializeAccount) SetOwnerAccount(owner solana.PublicKey) *InitializeAccount {
-	inst.AccountMetaSlice[2] = solana.Meta(owner)
+func (inst *InitializeAccount) SetOwnerAccount(owner ag_solanago.PublicKey) *InitializeAccount {
+	inst.AccountMetaSlice[2] = ag_solanago.Meta(owner)
 	return inst
 }
 
 // GetOwnerAccount gets the "owner" account.
 // The new account's owner/multisignature.
-func (inst *InitializeAccount) GetOwnerAccount() *solana.AccountMeta {
+func (inst *InitializeAccount) GetOwnerAccount() *ag_solanago.AccountMeta {
 	return inst.AccountMetaSlice[2]
 }
 
 // SetSysVarRentPubkeyAccount sets the "$(SysVarRentPubkey)" account.
 // Rent sysvar.
-func (inst *InitializeAccount) SetSysVarRentPubkeyAccount(SysVarRentPubkey solana.PublicKey) *InitializeAccount {
-	inst.AccountMetaSlice[3] = solana.Meta(SysVarRentPubkey)
+func (inst *InitializeAccount) SetSysVarRentPubkeyAccount(SysVarRentPubkey ag_solanago.PublicKey) *InitializeAccount {
+	inst.AccountMetaSlice[3] = ag_solanago.Meta(SysVarRentPubkey)
 	return inst
 }
 
 // GetSysVarRentPubkeyAccount gets the "$(SysVarRentPubkey)" account.
 // Rent sysvar.
-func (inst *InitializeAccount) GetSysVarRentPubkeyAccount() *solana.AccountMeta {
+func (inst *InitializeAccount) GetSysVarRentPubkeyAccount() *ag_solanago.AccountMeta {
 	return inst.AccountMetaSlice[3]
 }
 
 func (inst InitializeAccount) Build() *Instruction {
-	return &Instruction{BaseVariant: bin.BaseVariant{
+	return &Instruction{BaseVariant: ag_binary.BaseVariant{
 		Impl:   inst,
-		TypeID: bin.TypeIDFromUint8(Instruction_InitializeAccount),
+		TypeID: ag_binary.TypeIDFromUint8(Instruction_InitializeAccount),
 	}}
 }
 
@@ -105,17 +145,23 @@ func (inst *InitializeAccount) Validate() error {
 	return nil
 }
 
-// NewInitializeAccountInstruction declares a new InitializeAccount instruction with the provided parameters and accounts
+func (obj InitializeAccount) MarshalWithEncoder(encoder *ag_binary.Encoder) (err error) {
+	return nil
+}
+func (obj *InitializeAccount) UnmarshalWithDecoder(decoder *ag_binary.Decoder) (err error) {
+	return nil
+}
+
+// NewInitializeAccountInstruction declares a new InitializeAccount instruction with the provided parameters and accounts.
 func NewInitializeAccountInstruction(
 	// Accounts:
-	account solana.PublicKey,
-	mint solana.PublicKey,
-	owner solana.PublicKey,
-	SysVarRentPubkey solana.PublicKey) *InitializeAccount {
+	account ag_solanago.PublicKey,
+	mint ag_solanago.PublicKey,
+	owner ag_solanago.PublicKey,
+	SysVarRentPubkey ag_solanago.PublicKey) *InitializeAccount {
 	return NewInitializeAccountInstructionBuilder().
 		SetAccount(account).
 		SetMintAccount(mint).
 		SetOwnerAccount(owner).
 		SetSysVarRentPubkeyAccount(SysVarRentPubkey)
 }
-
