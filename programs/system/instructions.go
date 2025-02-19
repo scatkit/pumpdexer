@@ -86,7 +86,6 @@ func (inst *Instruction) Accounts() (out []*scatsol.AccountMeta) {
   return inst.Impl.(scatsol.AccountsGettable).GetAccounts() // AccountsGettable is an interface
 }
 
-// ты сама тоже c Петрозаводска прихала? 
 func (inst *Instruction) Data() ([]byte, error) {
   buf := new(bytes.Buffer)
   if err := gg_binary.NewBinEncoder(buf).Encode(inst); err != nil {
@@ -95,7 +94,6 @@ func (inst *Instruction) Data() ([]byte, error) {
   return buf.Bytes(), nil
 }
 
-// училась tam gdeto? 
 func registryDecodeInstruction(accounts []*scatsol.AccountMeta, data []byte) (interface{}, error) {
   inst, err := DecodeInstruction(accounts, data)
   if err != nil {
@@ -126,6 +124,9 @@ var InstructionImplDef = gg_binary.NewVariantDefinition(
 		},
     {
       "CreaetAccount", (*CreateAccount)(nil),
+		},
+    {
+			"CreateAccountWithSeed", (*CreateAccountWithSeed)(nil),
 		},
 	},
 )
