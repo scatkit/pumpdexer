@@ -295,3 +295,18 @@ func findAssociatedTokenAddressAndBumpSeed(walletAddress PublicKey, splTokenMint
 
 	)
 }
+
+var ErrMaxSeedLengthExceeded = errors.New("max seed length exceeded")
+
+func CreateWithSeed(base PublicKey, seed string, owner PublicKey) (PublicKey, error) {
+	if len(seed) > MaxSeedLength {
+		return PublicKey{}, ErrMaxSeedLengthExceeded
+	}
+
+	b := make([]byte, 0, 64+len(seed))
+	b = append(b, base[:]...)
+	b = append(b, seed[:]...)
+	b = append(b, owner[:]...)
+	hash := sha256.Sum256(b)
+	return PublicKeyFromBytes(hash[:]), nil
+}
